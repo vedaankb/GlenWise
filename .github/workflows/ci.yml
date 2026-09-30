@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    name: Core (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    defaults:
+      run:
+        working-directory: services/core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: "0.6.0"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --extra dev --extra server
+      - run: uv run ruff check gleanwise tests
+      - run: uv run ruff format --check gleanwise tests
+      - run: uv run mypy gleanwise
+      # Includes the Postgres + pgvector suite (embedded server via pgserver) and the sqlite-vec suite.
+      - run: uv run pytest -q
+
+  js:
+    name: JavaScript (SDK, UI, integrations)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: "0.6.0"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pnpm install --frozen-lockfile
+      - name: Generated API files are up to date
+        run: |
+          (cd services/core && uv sync --extra dev --extra server)
+          pnpm run gen:api
+          git diff --exit-code -- services/core/openapi.json packages/client/src/schema.d.ts
+      - run: pnpm run build
+      - run: pnpm run typecheck
+      - run: pnpm exec eslint .
+      - run: pnpm exec prettier --check .
+      - run: pnpm -r --if-present run test
+
+  license:
+    name: License headers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/check_license_headers.py

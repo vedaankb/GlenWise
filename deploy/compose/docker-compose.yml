@@ -1,0 +1,51 @@
+# Personal / small-team setup: one core container (serves the web app too) and a private SearXNG.
+#
+#   cp ../../.env.example .env        # then edit; SEARXNG_SECRET is required
+#   docker compose up -d --build
+#   open http://127.0.0.1:8787
+#
+# Everything binds to 127.0.0.1. To share it, put a reverse proxy with TLS in front and set
+# GLEANWISE_API_TOKEN and GLEANWISE_ALLOWED_HOSTS (see docker-compose.server.yml).
+name: gleanwise
+
+services:
+  searxng:
+    image: searxng/searxng:latest
+    environment:
+      SEARXNG_SECRET: ${SEARXNG_SECRET:?Set SEARXNG_SECRET in .env (generate one with openssl rand -hex 32)}
+    volumes:
+      - ../searxng/settings.yml:/etc/searxng/settings.yml:ro
+    expose: ["8080"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    cap_drop: [ALL]
+    cap_add: [CHOWN, SETGID, SETUID]
+    security_opt: ["no-new-privileges:true"]
+
+  core:
+    build:
+      context: ../..
+      dockerfile: deploy/compose/Dockerfile.core
+    ports:
+      - "127.0.0.1:${GLEANWISE_PORT:-8787}:8787"
+    environment:
+      GLEANWISE_SEARXNG_URL: http://searxng:8080
+      GLEANWISE_SEARXNG_MANAGED: "false"
+      GLEANWISE_ALLOWED_HOSTS: ${GLEANWISE_ALLOWED_HOSTS:-}
+      GLEANWISE_LLM_MODEL: ${GLEANWISE_LLM_MODEL:-}
+      GLEANWISE_LLM_API_KEY: ${GLEANWISE_LLM_API_KEY:-}
+      GLEANWISE_LLM_API_BASE: ${GLEANWISE_LLM_API_BASE:-}
+    volumes:
+      - gleanwise-data:/data
+    depends_on:
+      searxng:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+
+volumes:
+  gleanwise-data:

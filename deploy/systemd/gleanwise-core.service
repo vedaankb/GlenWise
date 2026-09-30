@@ -1,0 +1,20 @@
+# Rendered by deploy/install.sh into ~/.config/systemd/user/; @PLACEHOLDERS@ are filled in at install time.
+[Unit]
+Description=GleanWise core
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=@DATA_DIR@
+Environment=GLEANWISE_DATA_DIR=@DATA_DIR@
+Environment=GLEANWISE_HOST=127.0.0.1
+Environment=GLEANWISE_PORT=@PORT@
+ExecStart=@BIN@ serve
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

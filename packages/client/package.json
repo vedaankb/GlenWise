@@ -1,0 +1,32 @@
+{
+  "name": "@gleanwise/client",
+  "version": "0.2.0",
+  "description": "Typed client for the GleanWise API: streaming answers with resume, cancel, and a shared state reducer.",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "rm -rf dist && esbuild src/index.ts --bundle --format=esm --platform=neutral --target=es2022 --sourcemap --outfile=dist/index.js && tsc -p tsconfig.build.json && cp src/schema.d.ts dist/schema.d.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "gen:types": "openapi-typescript ../../services/core/openapi.json -o src/schema.d.ts",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.5.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "esbuild": "^0.24.0"
+  }
+}

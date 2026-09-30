@@ -1,0 +1,54 @@
+{
+  "name": "@gleanwise/ui",
+  "version": "0.2.0",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && esbuild src/index.ts --bundle --format=esm --platform=neutral --target=es2022 --jsx=automatic --sourcemap --packages=external --outfile=dist/index.js && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "echo ok",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "katex": "^0.16.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.7.2",
+    "esbuild": "^0.24.0",
+    "vitest": "^2.1.8",
+    "@testing-library/react": "^16.1.0",
+    "happy-dom": "^15.11.7",
+    "@types/katex": "^0.16.7",
+    "katex": "^0.16.11"
+  },
+  "description": "Unstyled React primitives: answer renderer, citation chips with hover cards, source list.",
+  "dependencies": {
+    "@gleanwise/client": "workspace:*",
+    "@radix-ui/react-popover": "^1.1.4",
+    "clsx": "^2.1.1",
+    "react-markdown": "^9.0.1",
+    "rehype-highlight": "^7.0.1",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.0",
+    "remark-math": "^6.0.0",
+    "unist-util-visit": "^5.0.0"
+  },
+  "sideEffects": false
+}

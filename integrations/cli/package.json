@@ -1,0 +1,28 @@
+{
+  "name": "@gleanwise/cli",
+  "version": "0.2.0",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "bin": {
+    "gleanwise": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "rm -rf dist && esbuild src/index.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/index.js && chmod +x dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "echo ok"
+  },
+  "dependencies": {
+    "@gleanwise/client": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2",
+    "esbuild": "^0.24.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  }
+}

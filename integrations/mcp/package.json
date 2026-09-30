@@ -1,0 +1,31 @@
+{
+  "name": "@gleanwise/mcp",
+  "version": "0.2.0",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "bin": {
+    "gw-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "rm -rf dist && esbuild src/index.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/index.js --external:@modelcontextprotocol/sdk --external:zod && chmod +x dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "echo ok",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@gleanwise/client": "workspace:*",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2",
+    "esbuild": "^0.24.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  }
+}

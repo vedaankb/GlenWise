@@ -1,0 +1,74 @@
+# Server profile: shared instance with Postgres + pgvector storage and a required API token.
+#
+#   cp ../../.env.example .env        # set GLEANWISE_API_TOKEN, SEARXNG_SECRET, POSTGRES_PASSWORD, GLEANWISE_ALLOWED_HOSTS
+#   docker compose -f docker-compose.server.yml up -d --build
+#
+# Put a TLS-terminating reverse proxy in front (Caddy, nginx, Traefik). The core listens on 127.0.0.1 only.
+# Run a single core replica: live query streams are held in that process's memory, so multiple replicas
+# need sticky routing on the query id (see ARCHITECTURE.md, "Scaling").
+name: gleanwise-server
+
+services:
+  searxng:
+    image: searxng/searxng:latest
+    environment:
+      SEARXNG_SECRET: ${SEARXNG_SECRET:?Set SEARXNG_SECRET in .env (openssl rand -hex 32)}
+    volumes:
+      - ../searxng/settings.yml:/etc/searxng/settings.yml:ro
+    expose: ["8080"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    cap_drop: [ALL]
+    cap_add: [CHOWN, SETGID, SETUID]
+    security_opt: ["no-new-privileges:true"]
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: gleanwise
+      POSTGRES_DB: gleanwise
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gleanwise -d gleanwise"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  core:
+    build:
+      context: ../..
+      dockerfile: deploy/compose/Dockerfile.core
+      args:
+        EXTRAS: "--extra server"
+    ports:
+      - "127.0.0.1:${GLEANWISE_PORT:-8787}:8787"
+    environment:
+      GLEANWISE_PROFILE: server
+      GLEANWISE_API_TOKEN: ${GLEANWISE_API_TOKEN:?Set GLEANWISE_API_TOKEN in .env (docker run --rm gleanwise-core gleanwise token)}
+      GLEANWISE_ALLOWED_HOSTS: ${GLEANWISE_ALLOWED_HOSTS:?Set GLEANWISE_ALLOWED_HOSTS to your public host name}
+      GLEANWISE_SEARXNG_URL: http://searxng:8080
+      GLEANWISE_SEARXNG_MANAGED: "false"
+      GLEANWISE_DATABASE_URL: postgresql://gleanwise:${POSTGRES_PASSWORD}@postgres:5432/gleanwise
+      GLEANWISE_LLM_MODEL: ${GLEANWISE_LLM_MODEL:-}
+      GLEANWISE_LLM_API_KEY: ${GLEANWISE_LLM_API_KEY:-}
+      GLEANWISE_LLM_API_BASE: ${GLEANWISE_LLM_API_BASE:-}
+    volumes:
+      - gleanwise-data:/data
+    depends_on:
+      searxng:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+
+volumes:
+  pgdata:
+  gleanwise-data:

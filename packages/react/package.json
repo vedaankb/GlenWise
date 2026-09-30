@@ -1,0 +1,40 @@
+{
+  "name": "@gleanwise/react",
+  "version": "0.2.0",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && esbuild src/index.tsx --bundle --format=esm --platform=neutral --target=es2022 --external:react --external:@gleanwise/client --external:react-dom --sourcemap --outfile=dist/index.js && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "echo ok",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "@gleanwise/client": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "react": "^19.0.0",
+    "typescript": "^5.7.2",
+    "esbuild": "^0.24.0",
+    "vitest": "^2.1.8",
+    "@testing-library/react": "^16.1.0",
+    "happy-dom": "^15.11.7",
+    "react-dom": "^19.0.0",
+    "@types/react-dom": "^19.0.0"
+  }
+}

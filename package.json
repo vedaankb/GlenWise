@@ -1,0 +1,32 @@
+{
+  "name": "gleanwise",
+  "private": true,
+  "version": "0.2.0",
+  "description": "Open-source BYOK/BYOM answer engine",
+  "license": "AGPL-3.0-or-later",
+  "packageManager": "pnpm@9.15.0",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm --filter @gleanwise/client build && pnpm -r --if-present --workspace-concurrency=1 run build",
+    "dev": "pnpm --filter @gleanwise/web dev",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "test": "pnpm -r --if-present run test && cd services/core && uv run pytest -q",
+    "gen:api": "cd services/core && uv run python -m gleanwise.cli openapi openapi.json && cd ../.. && pnpm --filter @gleanwise/client run gen:types",
+    "dev:core": "cd services/core && uv run gleanwise serve",
+    "dev:stack": "cd services/core && uv run python -m gleanwise.testing.devstack"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.19.0"
+  }
+}

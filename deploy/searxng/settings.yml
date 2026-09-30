@@ -1,0 +1,20 @@
+# SearXNG settings used by GleanWise (managed install and the compose files).
+# The secret key is never stored here: the installer generates one per machine and passes it in through
+# SEARXNG_SECRET (managed install: <data dir>/searxng/secret_key; compose: SEARXNG_SECRET in .env).
+use_default_settings: true
+general:
+  instance_name: "GleanWise search"
+  enable_metrics: false
+server:
+  limiter: false
+  public_instance: false
+  image_proxy: false
+  method: "GET"
+search:
+  safe_search: 0
+  autocomplete: ""
+  formats:
+    - html
+    - json
+ui:
+  static_use_hash: true
